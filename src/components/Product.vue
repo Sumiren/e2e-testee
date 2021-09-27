@@ -3,10 +3,10 @@
     <ul>
       <li v-for="item in products" :key="item.id">
         <span>{{ item.productName}}</span>
-        <button v-on:click="remove(item.id)" class="remove">削除</button>
+        <button v-on:click="remove(item.id)" class="remove">Remove</button>
       </li>
     </ul>
-    <router-link to="/product/add" class="link">追加</router-link>
+    <router-link to="/product/add" class="link">Add</router-link>
   </div>
 </template>
 
