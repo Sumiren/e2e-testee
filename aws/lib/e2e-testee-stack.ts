@@ -17,7 +17,7 @@ export class E2ETesteeStack extends cdk.Stack {
     });
 
     new s3Deploy.BucketDeployment(this, 'E2ETesteeBucketDeploy', {
-      sources: [s3Deploy.Source.asset('../dist')],
+      sources: [s3Deploy.Source.asset('../frontend/dist')],
       destinationBucket: bucket,
     });
 
@@ -36,6 +36,18 @@ export class E2ETesteeStack extends cdk.Stack {
 
     bucket.addToResourcePolicy(cfS3Access);
 
+    // CloudFront Functionリソースの定義
+    const redirectRootFunction = new cloudfront.Function(
+      this,
+      'RedirectRootFunction',
+      {
+        functionName: 'redirect-root',
+        code: cloudfront.FunctionCode.fromFile({
+          filePath: '../backend/src/cloudfront-functions/redirect-root-handler.js',
+        }),
+      },
+    );
+
     const cfDist = new cloudfront.CloudFrontWebDistribution(this, 'CfDistribution', {
       originConfigs: [{
         s3OriginSource: {
@@ -43,7 +55,15 @@ export class E2ETesteeStack extends cdk.Stack {
           originAccessIdentity: cfOai,
         },
         behaviors: [
-          { isDefaultBehavior: true },
+          {
+            isDefaultBehavior: true,
+            functionAssociations: [
+              {
+                eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+                function: redirectRootFunction,
+              },
+            ],
+          },
         ],
       }],
     });
